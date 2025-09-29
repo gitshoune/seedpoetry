@@ -1,3 +1,5 @@
+#!/bin/bash
+
 START_DATE="2025-04-01"
 DAYS=90
 FILE="README.md"
@@ -6,16 +8,37 @@ FILE="README.md"
 START_SECONDS=$(date -d "$START_DATE" "+%s")
 END_SECONDS=$(date "+%s")  # Current date/time (2025-09-29)
 
-# Calculate the total number of seconds in the date range
-RANGE_SECONDS=$((END_SECONDS - START_SECONDS))
+# Calculate the number of days in the range
+RANGE_DAYS=$(( (END_SECONDS - START_SECONDS) / 86400 ))
 
+# Debugging: Print the date range
+echo "Start date: $(date -d "@$START_SECONDS" "+%Y-%m-%d")"
+echo "End date: $(date -d "@$END_SECONDS" "+%Y-%m-%d")"
+echo "Range in days: $RANGE_DAYS"
+
+# Generate random days and sort them to simulate realistic commit history
+declare -a COMMIT_DATES
 for ((i=0; i<$DAYS; i++)); do
-  # Generate a random number of seconds within the date range
-  RANDOM_SECONDS=$(shuf -i 0-$RANGE_SECONDS -n 1)
-  # Calculate random commit date
-  COMMIT_SECONDS=$((START_SECONDS + RANDOM_SECONDS))
-  COMMIT_DATE=$(date -d "@$COMMIT_SECONDS" "+%Y-%m-%dT%H:%M:%S")
-  COMMIT_DISPLAY=$(date -d "@$COMMIT_SECONDS" "+%Y-%m-%d %H:%M:%S")
+  # Generate a random day offset within the range
+  RANDOM_DAY=$((RANDOM % (RANGE_DAYS + 1)))
+  # Calculate the random date in seconds
+  RANDOM_SECONDS=$((START_SECONDS + RANDOM_DAY * 86400))
+  # Add random hours, minutes, seconds for realism
+  RANDOM_HOURS=$((RANDOM % 24))
+  RANDOM_MINUTES=$((RANDOM % 60))
+  RANDOM_SECONDS=$((RANDOM % 60))
+  COMMIT_DATE=$(date -d "@$RANDOM_SECONDS" "+%Y-%m-%dT$RANDOM_HOURS:$RANDOM_MINUTES:$RANDOM_SECONDS")
+  COMMIT_DATES+=("$COMMIT_DATE")
+done
+
+# Sort dates to make commit history chronological
+IFS=$'\n' sorted_dates=($(sort <<<"${COMMIT_DATES[*]}"))
+unset IFS
+
+# Create commits
+for ((i=0; i<$DAYS; i++)); do
+  COMMIT_DATE="${sorted_dates[$i]}"
+  COMMIT_DISPLAY=$(date -d "$COMMIT_DATE" "+%Y-%m-%d %H:%M:%S")
   echo "Commit on $COMMIT_DISPLAY" >> $FILE
   git add $FILE
   GIT_AUTHOR_DATE="$COMMIT_DATE" GIT_COMMITTER_DATE="$COMMIT_DATE" git commit -m "Auto commit on $COMMIT_DISPLAY"
