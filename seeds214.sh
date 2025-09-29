@@ -1,12 +1,13 @@
 #!/bin/bash
 
 START_DATE="2025-04-01"
+END_DATE="2025-09-30"
 DAYS=90
 FILE="README.md"
 
 # Calculate start and end dates in seconds since epoch
 START_SECONDS=$(date -d "$START_DATE" "+%s")
-END_SECONDS=$(date "+%s")  # Current date/time (2025-09-29)
+END_SECONDS=$(date -d "$END_DATE" "+%s")
 
 # Calculate the number of days in the range
 RANGE_DAYS=$(( (END_SECONDS - START_SECONDS) / 86400 ))
@@ -16,7 +17,7 @@ echo "Start date: $(date -d "@$START_SECONDS" "+%Y-%m-%d")"
 echo "End date: $(date -d "@$END_SECONDS" "+%Y-%m-%d")"
 echo "Range in days: $RANGE_DAYS"
 
-# Generate random days and sort them to simulate realistic commit history
+# Generate random commit dates
 declare -a COMMIT_DATES
 for ((i=0; i<$DAYS; i++)); do
   # Generate a random day offset within the range
@@ -27,7 +28,7 @@ for ((i=0; i<$DAYS; i++)); do
   RANDOM_HOURS=$((RANDOM % 24))
   RANDOM_MINUTES=$((RANDOM % 60))
   RANDOM_SECONDS=$((RANDOM % 60))
-  COMMIT_DATE=$(date -d "@$RANDOM_SECONDS" "+%Y-%m-%dT$RANDOM_HOURS:$RANDOM_MINUTES:$RANDOM_SECONDS")
+  COMMIT_DATE=$(date -d "@$RANDOM_SECONDS" "+%Y-%m-%dT${RANDOM_HOURS}:${RANDOM_MINUTES}:${RANDOM_SECONDS}")
   COMMIT_DATES+=("$COMMIT_DATE")
 done
 
@@ -44,4 +45,4 @@ for ((i=0; i<$DAYS; i++)); do
   GIT_AUTHOR_DATE="$COMMIT_DATE" GIT_COMMITTER_DATE="$COMMIT_DATE" git commit -m "Auto commit on $COMMIT_DISPLAY"
 done
 
-echo "✅ Done generating fake commits."
+echo "✅ Done generating commits."
